@@ -1,75 +1,90 @@
 import React from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
-import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "../../store/store";
+import { useDispatch } from "react-redux";
 import { setPersonalProfile } from "./onboardingSlice.tsx";
-import { useNavigate } from "react-router-dom";
+import { PersonalProfile } from "../../types/types.ts";
 
-const PersonalProfile = () => {
+const PersonalProfileForm: React.FC = () => {
   const dispatch = useDispatch();
-  const navigate = useNavigate();
-  const personalProfile = useSelector(
-    (state: RootState) => state.onboarding.personalProfile
-  );
 
-  const formik = useFormik({
+  const formik = useFormik<PersonalProfile>({
     initialValues: {
-      name: personalProfile.name || "",
-      age: personalProfile.age || 0,
-      email: personalProfile.email || "",
-      profilePicture: personalProfile.profilePicture || "",
+      name: "",
+      age: 0,
+      email: "",
+      profilePicture: "",
     },
     validationSchema: Yup.object({
       name: Yup.string().required("Name is required"),
-      age: Yup.number().min(1, "Invalid age").required("Age is required"),
-      email: Yup.string().email("Invalid email").required("Email is required"),
+      age: Yup.number()
+        .min(18, "Age must be at least 18")
+        .required("Age is required"),
+      email: Yup.string()
+        .email("Invalid email address")
+        .required("Email is required"),
     }),
     onSubmit: (values) => {
       dispatch(setPersonalProfile(values));
-      navigate("/onboarding/step2");
     },
   });
 
   return (
-    <div>
-      <h1>Personal Profile</h1>
-      <form onSubmit={formik.handleSubmit}>
+    <form onSubmit={formik.handleSubmit}>
+      <section>
+        <label htmlFor="name">Name</label>
         <input
+          id="name"
           type="text"
           name="name"
-          placeholder="Name"
           value={formik.values.name}
           onChange={formik.handleChange}
         />
         {formik.errors.name && <p>{formik.errors.name}</p>}
+      </section>
+
+      <section>
+        <label htmlFor="age">Age</label>
         <input
+          id="age"
           type="number"
           name="age"
-          placeholder="Age"
           value={formik.values.age}
           onChange={formik.handleChange}
         />
         {formik.errors.age && <p>{formik.errors.age}</p>}
+      </section>
+
+      <section>
+        <label htmlFor="email">Email</label>
         <input
+          id="email"
           type="email"
           name="email"
-          placeholder="Email"
           value={formik.values.email}
           onChange={formik.handleChange}
         />
         {formik.errors.email && <p>{formik.errors.email}</p>}
+      </section>
+
+      <section>
+        <label htmlFor="profilePicture">Profile Picture</label>
         <input
+          id="profilePicture"
           type="file"
           name="profilePicture"
-          onChange={(e) =>
-            formik.setFieldValue("profilePicture", e.target.files?.[0] || "")
+          onChange={(event) =>
+            formik.setFieldValue(
+              "profilePicture",
+              event.currentTarget.files?.[0]
+            )
           }
         />
-        <button type="submit">Next</button>
-      </form>
-    </div>
+      </section>
+
+      <button type="submit">Next</button>
+    </form>
   );
 };
 
-export default PersonalProfile;
+export default PersonalProfileForm;

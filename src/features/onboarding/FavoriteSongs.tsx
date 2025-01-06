@@ -1,22 +1,16 @@
 import React from "react";
 import { useFormik } from "formik";
-import { useDispatch, useSelector } from "react-redux";
-import { RootState } from "../../store/store";
+import { useDispatch } from "react-redux";
 import { setFavoriteSongs } from "./onboardingSlice.tsx";
-import { useNavigate } from "react-router-dom";
 
-const FavoriteSongs = () => {
+const FavoriteSongsForm: React.FC = () => {
   const dispatch = useDispatch();
-  const navigate = useNavigate();
-  const favoriteSongs = useSelector(
-    (state: RootState) => state.onboarding.favoriteSongs
-  );
-
   const formik = useFormik({
-    initialValues: { songs: favoriteSongs },
+    initialValues: {
+      songs: [""],
+    },
     onSubmit: (values) => {
       dispatch(setFavoriteSongs(values.songs));
-      navigate("/onboarding/step3");
     },
   });
 
@@ -24,33 +18,35 @@ const FavoriteSongs = () => {
     formik.setFieldValue("songs", [...formik.values.songs, ""]);
   };
 
-  const updateSong = (index: number, value: string) => {
-    const updatedSongs = [...formik.values.songs];
-    updatedSongs[index] = value;
-    formik.setFieldValue("songs", updatedSongs);
+  const handleSongChange = (
+    index: number,
+    event: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const newSongs = [...formik.values.songs];
+    newSongs[index] = event.target.value;
+    formik.setFieldValue("songs", newSongs);
   };
 
   return (
-    <div>
-      <h1>Favorite Songs</h1>
-      <form onSubmit={formik.handleSubmit}>
+    <form onSubmit={formik.handleSubmit}>
+      <div>
+        <h2>Your Favorite Songs</h2>
         {formik.values.songs.map((song, index) => (
           <div key={index}>
             <input
               type="text"
-              placeholder={`Song ${index + 1}`}
               value={song}
-              onChange={(e) => updateSong(index, e.target.value)}
+              onChange={(event) => handleSongChange(index, event)}
             />
           </div>
         ))}
         <button type="button" onClick={addSong}>
-          Add Song
+          Add Another Song
         </button>
-        <button type="submit">Next</button>
-      </form>
-    </div>
+      </div>
+      <button type="submit">Next</button>
+    </form>
   );
 };
 
-export default FavoriteSongs;
+export default FavoriteSongsForm;
