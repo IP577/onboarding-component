@@ -1,97 +1,67 @@
-import { createSlice, PayloadAction, createAsyncThunk } from "@reduxjs/toolkit";
-import {
-  PersonalProfile,
-  OnboardingState,
-  PaymentInfo,
-} from "../../types/types.ts";
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 
-export const savePersonalProfile = createAsyncThunk(
-  "onboarding/savePersonalProfile",
-  async (profile: PersonalProfile) => {
-    return new Promise<PersonalProfile>((resolve) => {
-      setTimeout(() => {
-        localStorage.setItem("personalProfile", JSON.stringify(profile));
-        resolve(profile);
-      }, 1000);
-    });
-  }
-);
-
-export const saveFavoriteSongs = createAsyncThunk(
-  "onboarding/saveFavoriteSongs",
-  async (songs: string[]) => {
-    return new Promise<string[]>((resolve) => {
-      setTimeout(() => {
-        localStorage.setItem("favoriteSongs", JSON.stringify(songs));
-        resolve(songs);
-      }, 1000);
-    });
-  }
-);
-
-export const savePaymentInfo = createAsyncThunk(
-  "onboarding/savePaymentInfo",
-  async (paymentInfo: PaymentInfo) => {
-    return new Promise<PaymentInfo>((resolve) => {
-      setTimeout(() => {
-        localStorage.setItem("paymentInfo", JSON.stringify(paymentInfo));
-        resolve(paymentInfo);
-      }, 1000);
-    });
-  }
-);
+interface OnboardingState {
+  personalProfile: {
+    name: string;
+    age: number;
+    email: string;
+    profilePicture: string | null;
+  } | null;
+  favoriteSongs: string[];
+  paymentDetails: {
+    cardNumber: string;
+    expiryDate: string;
+    cvv: string;
+  } | null;
+  currentStep: number; // Tracks current step
+  isCompleted: boolean; // Indicates if onboarding is completed
+  isLoggedIn: boolean; // Tracks if the user is logged in
+}
 
 const initialState: OnboardingState = {
-  currentStep: 1,
   personalProfile: null,
   favoriteSongs: [],
-  paymentInfo: null,
-  isComplete: false,
+  paymentDetails: null,
+  currentStep: 1,
+  isCompleted: false,
+  isLoggedIn: false, // Default to false
 };
 
 const onboardingSlice = createSlice({
   name: "onboarding",
   initialState,
   reducers: {
-    setPersonalProfile(state, action: PayloadAction<PersonalProfile>) {
+    setPersonalProfile(
+      state,
+      action: PayloadAction<OnboardingState["personalProfile"]>
+    ) {
       state.personalProfile = action.payload;
-      state.currentStep = 2;
+      state.currentStep = 2; // Advance to step 2
     },
     setFavoriteSongs(state, action: PayloadAction<string[]>) {
       state.favoriteSongs = action.payload;
-      state.currentStep = 3;
+      state.currentStep = 3; // Advance to step 3
     },
-    setPaymentInfo(state, action: PayloadAction<PaymentInfo>) {
-      state.paymentInfo = action.payload;
-      state.currentStep = 4;
+    setPaymentDetails(
+      state,
+      action: PayloadAction<OnboardingState["paymentDetails"]>
+    ) {
+      state.paymentDetails = action.payload;
+      state.isCompleted = true; // Mark onboarding as completed
     },
-    setOnboardingComplete(state) {
-      state.isComplete = true;
+    setLoggedInStatus(state, action: PayloadAction<boolean>) {
+      state.isLoggedIn = action.payload; // Update logged-in status
     },
-  },
-  extraReducers: (builder) => {
-    builder
-      .addCase(savePersonalProfile.fulfilled, (state, action) => {
-        state.personalProfile = action.payload;
-        state.currentStep = 2;
-      })
-      .addCase(saveFavoriteSongs.fulfilled, (state, action) => {
-        state.favoriteSongs = action.payload;
-        state.currentStep = 3;
-      })
-      .addCase(savePaymentInfo.fulfilled, (state, action) => {
-        state.paymentInfo = action.payload;
-        state.currentStep = 4;
-        state.isComplete = true;
-      });
+    resetOnboardingState: () => initialState,
   },
 });
 
 export const {
   setPersonalProfile,
   setFavoriteSongs,
-  setPaymentInfo,
-  setOnboardingComplete,
+  setPaymentDetails,
+  setLoggedInStatus,
+  resetOnboardingState,
 } = onboardingSlice.actions;
 
 export default onboardingSlice.reducer;
